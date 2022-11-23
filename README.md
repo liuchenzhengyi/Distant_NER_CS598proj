@@ -7,7 +7,7 @@ The code is adapted from [BOND](https://github.com/cliang1453/BOND)
 
 ## Data
 
-We release five open-domain distantly/weakly labeled NER datasets here: [dataset](dataset). For gazetteers information and distant label generation code, please directly email cliang73@gatech.edu.
+We release five open-domain distantly/weakly labeled NER datasets here: [dataset](dataset). 
 
 ## Environment
 
