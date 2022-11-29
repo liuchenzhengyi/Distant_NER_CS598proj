@@ -70,4 +70,4 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$GPUID python3 run_self_traini
   --self_training_reinit $REINIT --self_training_begin_step $BEGIN_STEP \
   --self_training_label_mode $LABEL_MODE --self_training_period $PERIOD \
   --self_training_hp_label $HP_LABEL \
->> main_moe2.log 2>&1 &
+>> main_moe.log 2>&1 &
