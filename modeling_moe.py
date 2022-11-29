@@ -7,6 +7,7 @@ prompt_len = 5
 tokenizer_len = 50265
 tokenizer_pad_token_id = 1
 num_labels = 11
+use_fair = False
 
 if os.path.exists("pretrained_model/expert_prompt.bin"):
     expert_prompt = torch.load("pretrained_model/expert_prompt.bin")
@@ -158,6 +159,27 @@ class RobertaForTokenClassification_moe(BertPreTrainedModel):
         return outputs  # (loss), scores, final_embedding, (hidden_states), (attentions)
 
 
+    def fair_expert_selection(self, loss):
+        '''
+            add the fairness code there, the loss is of the shape [batch_size, expert_num, 1] without softmax
+        '''
+        lamda = 0.1
+        
+        # score = torch.exp(-loss / lamda)
+        score = loss
+        
+        score = score.squeeze()
+        batch_size, expert_num = score.size()
+        mu1 = torch.ones(batch_size, 1).to(device) / batch_size
+        mu2 = torch.ones(expert_num, 1).to(device) / expert_num
+        b = torch.ones(expert_num, 1).to(device) / expert_num
+        for _ in range(30):
+            a = mu1 / (score @ b)
+            b = mu2 / (score.T @ a)
+        score = torch.diag(a.squeeze()) @ score @ torch.diag(b.squeeze())
+        score = torch.reshape(score, (batch_size, expert_num, 1))
+        return score
+    
     def MoEDataCollator(self, batch_inputs):
         batch_size = batch_inputs['input_ids'].shape[0]
 
@@ -184,6 +206,8 @@ class RobertaForTokenClassification_moe(BertPreTrainedModel):
                 active_logits, active_labels = logits[i][masks == 1], labels[i][masks == 1]
                 loss.append(loss_fct(active_logits, active_labels))
             loss = torch.stack(loss, dim=0).reshape(batch_size, expert_num, 1)
+            if use_fair:
+                loss = self.fair_expert_selection(loss)
             mixture_ids = loss.argmin(dim=1).type(torch.int64)
 
             batch_inputs_new = batch_inputs
@@ -194,10 +218,3 @@ class RobertaForTokenClassification_moe(BertPreTrainedModel):
             batch_inputs_new = mixture_inputs
 
         return batch_inputs_new
-
-
-    def fair_expert_selection(self, loss):
-        '''
-            add the fairness code there, the loss is of the shape [batch_size, expert_num, 1] without softmax
-        '''
-        return loss

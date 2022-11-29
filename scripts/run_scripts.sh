@@ -44,7 +44,8 @@ OUTPUT=$PROJECT_ROOT/outputs/conll03/self_training/${MODEL_TYPE}_reinit${REINIT}
 cp -f $(readlink -f "$0") $OUTPUT/script
 rsync -ruzC --exclude-from=$PROJECT_ROOT/.gitignore --exclude 'dataset' --exclude 'pretrained_model' --exclude 'outputs' $PROJECT_ROOT/ $OUTPUT/src
 
-CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$GPUID nohup python3 run_self_training_ner.py --data_dir $DATA_ROOT \
+# CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$GPUID nohup python3 run_self_training_ner.py --data_dir $DATA_ROOT \
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$GPUID python3 run_self_training_ner.py --data_dir $DATA_ROOT \
   --model_type $MODEL_TYPE --model_name_or_path $MODEL_NAME \
   --learning_rate $LR \
   --weight_decay $WEIGHT_DECAY \
@@ -69,4 +70,4 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$GPUID nohup python3 run_self_
   --self_training_reinit $REINIT --self_training_begin_step $BEGIN_STEP \
   --self_training_label_mode $LABEL_MODE --self_training_period $PERIOD \
   --self_training_hp_label $HP_LABEL \
->> main_moe.log 2>&1 &
+>> main_moe2.log 2>&1 &
